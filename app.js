@@ -20,6 +20,14 @@ app.post('/register', function (req, res) {
   res.json(response);
 });
 
+app.post('/login', function (req, res) {
+  const response = {
+    success: 1,
+    message: 'login succeed!'
+  };
+  res.json(response);
+});
+
 app.listen(3001, function () {
   console.log('Example app listening on port 3001!')
 })
