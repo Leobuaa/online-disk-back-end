@@ -22,13 +22,7 @@ app.get('/', function (req, res) {
 })
 
 app.post('/register', upload.array(), function (req, res) {
-  const response = {
-    success: 1,
-    message: 'register succeed!',
-    body: req.body,
-  };
-  User.register(req.body);
-  res.json(response);
+  User.register(req.body, res);
 });
 
 app.post('/login', function (req, res) {

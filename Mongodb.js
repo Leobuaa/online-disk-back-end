@@ -17,8 +17,14 @@ var insertDocuments = function(db, callback) {
   });
 }
 
-var insertUsers = (db, req) => {
+var insertUsers = (db, req, res) => {
   var user = db.collection('users');
+  const response = {
+    success: '1',
+    message: '',
+    code: '0',
+    data: null,
+  };
 
   user.insertOne({
     _id: req.username,
@@ -28,12 +34,30 @@ var insertUsers = (db, req) => {
   }, (err, result) => {
     if (err === null) {
       console.log("Insert 1 user into the users collection");
+      if (result.result.ok === 1 && result.result.n === 1) {
+        console.log(result.ops);
+        const obj = result.ops[0];
+        response.message = 'Register succeed!';
+        response.data = {
+          _id: obj._id,
+          username: obj.username,
+          email: obj.email,
+        };
+      }
+    } else {
+      console.log("Insert error occured.");
+      console.log(err);
+      response.success = '0';
+      response.code = err.code.toString();
+      response.message = err.message;
     }
+
+    res.json(response);
   })
 
 }
 
-var connect = (callback, req) => {
+var connect = (callback, req, res) => {
   var MongoClient = mongodb.MongoClient;
   // Connection URL
   var url = 'mongodb://localhost:27017/online-disk-back-end';
@@ -41,7 +65,7 @@ var connect = (callback, req) => {
   MongoClient.connect(url, function(err, db) {
     // assert.equal(null, err);
     console.log("Connected correctly to db server");
-    callback(db, req);
+    callback(db, req, res);
   });
 };
 
