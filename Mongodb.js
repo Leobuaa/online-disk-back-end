@@ -1,5 +1,6 @@
 var mongodb = require('mongodb')
 var assert = require('assert')
+var md5 = require('blueimp-md5')
 
 var insertDocuments = function(db, callback) {
   // Get the documents collection
@@ -23,7 +24,7 @@ var insertUsers = (db, req) => {
     _id: req.username,
     username: req.username,
     email: req.email,
-    password: req.password,
+    password: md5(req.password),
   }, (err, result) => {
     if (err === null) {
       console.log("Insert 1 user into the users collection");

@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/Leobuaa/online-disk-back-end#readme",
   "dependencies": {
+    "blueimp-md5": "^2.6.0",
     "body-parser": "^1.15.2",
     "express": "^4.14.0",
     "mongodb": "^2.2.14",
