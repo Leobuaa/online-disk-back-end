@@ -25,12 +25,8 @@ app.post('/register', upload.array(), function (req, res) {
   User.register(req.body, res);
 });
 
-app.post('/login', function (req, res) {
-  const response = {
-    success: 1,
-    message: 'login succeed!'
-  };
-  res.json(response);
+app.post('/login', upload.array(), function (req, res) {
+  User.login(req.body, res);
 });
 
 app.listen(3001, function () {

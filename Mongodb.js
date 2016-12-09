@@ -2,21 +2,6 @@ var mongodb = require('mongodb')
 var assert = require('assert')
 var md5 = require('blueimp-md5')
 
-var insertDocuments = function(db, callback) {
-  // Get the documents collection
-  var collection = db.collection('documents');
-  // Insert some documents
-  collection.insertMany([
-    {a : 1}, {a : 2}, {a : 3}
-  ], function(err, result) {
-    assert.equal(err, null);
-    assert.equal(3, result.result.n);
-    assert.equal(3, result.ops.length);
-    console.log("Inserted 3 documents into the document collection");
-    callback(result);
-  });
-}
-
 var insertUsers = (db, req, res) => {
   var user = db.collection('users');
   const response = {
@@ -57,6 +42,44 @@ var insertUsers = (db, req, res) => {
 
 }
 
+var findUsers = (db, req, res) => {
+  var user = db.collection('users');
+  const response = {
+    success: '1',
+    message: '',
+    code: '0',
+    data: null,
+  };
+
+  user.findOne({
+    _id: req.username
+  }, (err, result) => {
+    if (err === null) {
+      // console.log(result);
+      if (result === null) {
+        response.success = '0';
+        response.message = 'Login failed. Username does not exist.';
+        response.code = '1';
+      } else {
+        if (result.password === md5(req.password)) {
+          response.message = 'Login succeed.';
+          response.data = {
+            _id: result._id,
+            username: result.username,
+            email: result.email,
+          };
+        } else {
+          response.success = '0';
+          response.message = 'Login failed. Password wrong.';
+          response.code = '2';
+        }
+      }
+    }
+
+    res.json(response);
+  });
+}
+
 var connect = (callback, req, res) => {
   var MongoClient = mongodb.MongoClient;
   // Connection URL
@@ -71,3 +94,4 @@ var connect = (callback, req, res) => {
 
 exports.connect = connect
 exports.insertUsers = insertUsers
+exports.findUsers = findUsers
