@@ -1,9 +1,11 @@
 var mongodb = require('mongodb')
 var assert = require('assert')
 var md5 = require('blueimp-md5')
+var session = require('express-session')
 
 var insertUsers = (db, req, res) => {
   var user = db.collection('users');
+  const params = req.body;
   const response = {
     success: '1',
     message: '',
@@ -12,10 +14,10 @@ var insertUsers = (db, req, res) => {
   };
 
   user.insertOne({
-    _id: req.username,
-    username: req.username,
-    email: req.email,
-    password: md5(req.password),
+    _id: params.username,
+    username: params.username,
+    email: params.email,
+    password: md5(params.password),
   }, (err, result) => {
     if (err === null) {
       console.log("Insert 1 user into the users collection");
@@ -44,6 +46,7 @@ var insertUsers = (db, req, res) => {
 
 var findUsers = (db, req, res) => {
   var user = db.collection('users');
+  const params = req.body;
   const response = {
     success: '1',
     message: '',
@@ -52,7 +55,7 @@ var findUsers = (db, req, res) => {
   };
 
   user.findOne({
-    _id: req.username
+    _id: params.username
   }, (err, result) => {
     if (err === null) {
       // console.log(result);
@@ -61,13 +64,16 @@ var findUsers = (db, req, res) => {
         response.message = 'Login failed. Username does not exist.';
         response.code = '1';
       } else {
-        if (result.password === md5(req.password)) {
+        if (result.password === md5(params.password)) {
           response.message = 'Login succeed.';
           response.data = {
             _id: result._id,
             username: result.username,
             email: result.email,
           };
+          if (req.session) {
+            req.session.username = params.username;
+          }
         } else {
           response.success = '0';
           response.message = 'Login failed. Password wrong.';
