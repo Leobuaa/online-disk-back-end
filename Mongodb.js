@@ -74,7 +74,7 @@ var findUsers = (db, req, res) => {
     data: null,
   };
 
-  console.log(params);
+  // console.log(params);
 
   user.findOne({
     _id: params.username
@@ -92,6 +92,7 @@ var findUsers = (db, req, res) => {
             _id: result._id,
             username: result.username,
             email: result.email,
+            sessionId: req.session.id,
           };
           if (req.session) {
             req.session.username = params.username;
