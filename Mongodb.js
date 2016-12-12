@@ -74,6 +74,8 @@ var findUsers = (db, req, res) => {
     data: null,
   };
 
+  console.log(params);
+
   user.findOne({
     _id: params.username
   }, (err, result) => {
@@ -108,7 +110,7 @@ var findUsers = (db, req, res) => {
 
 var addItem = (db, req, res) => {
   var fileItems = db.collection('fileItems');
-  const params = req.body;
+  let params = req.body;
 
   const response = {
     success: '1',
@@ -122,13 +124,14 @@ var addItem = (db, req, res) => {
     response.message = 'User is not authenticated.';
     response.code = '1';
     res.json(response);
+    return;
   }
 
   fileItems.insertOne(params, (err, result) => {
     if (err === null) {
       console.log('Add one file item succeed.');
-      if (result.ok === 1 && result.n === 1) {
-        response.data = result.ops[0];
+      if (result.result.ok === 1 && result.result.n === 1) {
+        response.data = JSON.stringify(result.ops[0]);
       }
     } else {
       response.success = '0';
