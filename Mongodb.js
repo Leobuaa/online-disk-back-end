@@ -3,6 +3,26 @@ var assert = require('assert')
 var md5 = require('blueimp-md5')
 var session = require('express-session')
 
+var auth = (req) => {
+  if (req.session.username) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+var connect = (callback, req, res) => {
+  var MongoClient = mongodb.MongoClient;
+  // Connection URL
+  var url = 'mongodb://localhost:27017/online-disk-back-end';
+  // Use connect method to connect to the Server
+  MongoClient.connect(url, function(err, db) {
+    // assert.equal(null, err);
+    console.log("Connected correctly to db server");
+    callback(db, req, res);
+  });
+};
+
 var insertUsers = (db, req, res) => {
   var user = db.collection('users');
   const params = req.body;
@@ -86,18 +106,41 @@ var findUsers = (db, req, res) => {
   });
 }
 
-var connect = (callback, req, res) => {
-  var MongoClient = mongodb.MongoClient;
-  // Connection URL
-  var url = 'mongodb://localhost:27017/online-disk-back-end';
-  // Use connect method to connect to the Server
-  MongoClient.connect(url, function(err, db) {
-    // assert.equal(null, err);
-    console.log("Connected correctly to db server");
-    callback(db, req, res);
-  });
-};
+var addItem = (db, req, res) => {
+  var fileItems = db.collection('fileItems');
+  const params = req.body;
+
+  const response = {
+    success: '1',
+    message: '',
+    code: '0',
+    data: null,
+  };
+
+  if (!auth(req)) {
+    response.success = '0';
+    response.message = 'User is not authenticated.';
+    response.code = '1';
+    res.json(response);
+  }
+
+  fileItems.insertOne(params, (err, result) => {
+    if (err === null) {
+      console.log('Add one file item succeed.');
+      if (result.ok === 1 && result.n === 1) {
+        response.data = result.ops[0];
+      }
+    } else {
+      response.success = '0';
+      response.message = err.message;
+      response.code = err.code.toString();
+    }
+
+    res.json(response);
+  })
+}
 
 exports.connect = connect
 exports.insertUsers = insertUsers
 exports.findUsers = findUsers
+exports.addItem = addItem

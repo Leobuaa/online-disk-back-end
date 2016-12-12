@@ -5,6 +5,7 @@ var multer = require('multer'); // v1.0.5
 var upload = multer(); // for parsing multipart/form-data
 var session = require('express-session')
 var User = require('./User.js')
+var File = require('./FileItem.js');
 
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
@@ -31,17 +32,21 @@ app.get('/logout', function (req, res) {
     message: 'Logout succeed.',
     data: null,
   };
-  if (sess) {
+  console.log(sess);
+  if (sess && sess.username) {
     response.data = {
       username: sess.username,
     };
     sess.destroy((err) => {
-      if (err === null) {
-        res.json(response);
+      if (err) {
+        response.success = '0';
+        response.message = err.message;
       }
+      res.json(response);
     });
+  } else {
+    res.json(response);
   }
-  res.json(response);
 })
 
 app.post('/register', upload.array(), function (req, res) {
@@ -50,6 +55,10 @@ app.post('/register', upload.array(), function (req, res) {
 
 app.post('/login', upload.array(), function (req, res) {
   User.login(req, res);
+});
+
+app.post('/addItem', upload.array(), function (req, res) {
+  File.addItem(req, res);
 });
 
 app.listen(3001, function () {
