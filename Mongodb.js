@@ -123,10 +123,12 @@ var addItem = (db, req, res) => {
   if (!auth(req)) {
     response.success = '0';
     response.message = 'User is not authenticated.';
-    response.code = '1';
+    response.code = '110';
     res.json(response);
     return;
   }
+
+  params.username = req.session.username;
 
   fileItems.insertOne(params, (err, result) => {
     if (err === null) {

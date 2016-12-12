@@ -15,7 +15,7 @@ var isLogin = (req, res) => {
     message: '',
     data: null,
   }
-  console.log(req.body);
+  // console.log(req.body);
   if (sess && sess.id === req.body.sessionId) {
     response.message = 'User has logged in.';
     response.data = {
