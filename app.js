@@ -65,6 +65,10 @@ app.post('/addItem', upload.array(), function (req, res) {
   File.addItem(req, res);
 });
 
+app.get('/getItemList/:parentId', function (req, res) {
+  File.getItemList(req, res);
+})
+
 app.listen(3001, function () {
   console.log('Example app listening on port 3001!')
 })
