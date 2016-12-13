@@ -2,6 +2,8 @@ var mongodb = require('mongodb')
 var assert = require('assert')
 var md5 = require('blueimp-md5')
 var session = require('express-session')
+var helper = require('./helper.js')
+var uniqid = require('uniqid')
 
 var auth = (req) => {
   if (req.session.username) {
@@ -23,6 +25,7 @@ var connect = (callback, req, res) => {
   });
 };
 
+// register user, and initial one root directory.
 var insertUsers = (db, req, res) => {
   var user = db.collection('users');
   const params = req.body;
@@ -33,18 +36,28 @@ var insertUsers = (db, req, res) => {
     data: null,
   };
 
-  user.insertOne({
+  const obj = {
     _id: params.username,
     username: params.username,
     email: params.email,
     password: md5(params.password),
-  }, (err, result) => {
+    rootDir: {
+      _id: uniqid(),
+      id: 'root',
+      title: '全部文件',
+      size: '-',
+      updatedAt: helper.dateFormat(),
+      type: 'directory',
+      owner: params.username,
+    },
+  }
+
+  user.insertOne(obj, (err, result) => {
     if (err === null) {
       console.log("Insert 1 user into the users collection");
       if (result.result.ok === 1 && result.result.n === 1) {
         console.log(result.ops);
         const obj = result.ops[0];
-        response.message = 'Register succeed!';
         response.data = {
           _id: obj._id,
           username: obj.username,
