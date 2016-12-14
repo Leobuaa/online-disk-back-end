@@ -7,3 +7,7 @@ exports.addItem = (req, res) => {
 exports.getItemList = (req, res) => {
   Mongodb.connect(Mongodb.getItemList, req, res);
 }
+
+exports.updateItem = (req, res) => {
+  Mongodb.connect(Mongodb.updateItem, req, res);
+}

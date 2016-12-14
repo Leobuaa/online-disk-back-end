@@ -197,8 +197,50 @@ var getItemList = (db, req, res) => {
   })
 }
 
+var updateItem = (db, req, res) => {
+  var fileItems = db.collection('fileItems');
+  const params = req.body;
+
+  // console.log(params);
+
+  const response = {
+    success: '1',
+    message: '',
+    code: '0',
+    data: null,
+  };
+
+  if (!auth(req)) {
+    response.success = '0';
+    response.message = 'User is not authenticated.';
+    response.code = '110';
+    res.json(response);
+    return;
+  }
+
+  fileItems.findAndModify(
+    {id: params.id},
+    [['id', 1]],
+    {$set: {title: params.title, updatedAt: params.updatedAt}},
+    {new: true},
+    (err, doc) => {
+      if (err === null) {
+        response.message = 'Update succeed.'
+        response.data = doc.value;
+      } else {
+        response.success = '0';
+        response.message = err.message;
+        response.code = err.code.toString();
+      }
+
+      res.json(response);
+    }
+  )
+}
+
 exports.connect = connect
 exports.insertUsers = insertUsers
 exports.findUsers = findUsers
 exports.addItem = addItem
 exports.getItemList = getItemList
+exports.updateItem = updateItem
