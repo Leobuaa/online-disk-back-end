@@ -260,10 +260,16 @@ var deleteItem = (db, req, res) => {
     return;
   }
 
-  let resData = []
+  let resData = [];
+  let orArray = [];
+  console.log(params);
+
+  params.ids.map((obj) => {
+    orArray.push({id: obj}, {parentId: obj});
+  })
 
   fileItems.find(
-    {$or: [ {id: params.id}, {parentId: params.id}]}
+    {$or: orArray}
   ).toArray((err, items) => {
     if (err === null) {
       const length = items.length;
