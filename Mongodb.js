@@ -265,7 +265,7 @@ var deleteItem = (db, req, res) => {
   console.log(params);
 
   params.ids.map((obj) => {
-    orArray.push({id: obj}, {parentId: obj});
+    orArray.push({id: obj});
   })
 
   fileItems.find(
@@ -311,7 +311,6 @@ var deleteItem = (db, req, res) => {
 
 var getTrashItemList = (db, req, res) => {
   var fileItems = db.collection('fileItems');
-  const params = req.params;
 
   const response = {
     success: '1',
@@ -330,7 +329,6 @@ var getTrashItemList = (db, req, res) => {
 
   fileItems.find({
     $and: [
-      {parentId: params.parentId},
       {username: req.session.username},
       {$or: [{isDelete: true}, {isDelete: 'true'}]},
     ]
