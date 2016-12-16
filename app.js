@@ -69,6 +69,10 @@ app.get('/getItemList/:parentId', function (req, res) {
   File.getItemList(req, res);
 })
 
+app.get('/getTrashItemList/:parentId', function (req, res) {
+  File.getTrashItemList(req, res);
+})
+
 app.post('/updateItem', upload.array(), function (req, res) {
   File.updateItem(req, res);
 })

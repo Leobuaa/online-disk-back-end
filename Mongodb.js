@@ -309,6 +309,46 @@ var deleteItem = (db, req, res) => {
   })
 }
 
+var getTrashItemList = (db, req, res) => {
+  var fileItems = db.collection('fileItems');
+  const params = req.params;
+
+  const response = {
+    success: '1',
+    message: '',
+    code: '0',
+    data: null,
+  };
+
+  if (!auth(req)) {
+    response.success = '0';
+    response.message = 'User is not authenticated.';
+    response.code = '110';
+    res.json(response);
+    return;
+  }
+
+  fileItems.find({
+    $and: [
+      {parentId: params.parentId},
+      {username: req.session.username},
+      {$or: [{isDelete: true}, {isDelete: 'true'}]},
+    ]
+  }).toArray((err, items) => {
+    if (err === null) {
+      response.message = 'Get the trash item list succeed.';
+      response.data = items;
+      console.log(items);
+    } else {
+      response.success = '0';
+      response.message = err.message;
+      response.code = err.code.toString();
+    }
+
+    res.json(response);
+  })
+}
+
 exports.connect = connect
 exports.insertUsers = insertUsers
 exports.findUsers = findUsers
@@ -316,3 +356,4 @@ exports.addItem = addItem
 exports.getItemList = getItemList
 exports.updateItem = updateItem
 exports.deleteItem = deleteItem
+exports.getTrashItemList = getTrashItemList

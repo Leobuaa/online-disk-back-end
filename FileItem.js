@@ -15,3 +15,7 @@ exports.updateItem = (req, res) => {
 exports.deleteItem = (req, res) => {
   Mongodb.connect(Mongodb.deleteItem, req, res);
 }
+
+exports.getTrashItemList = (req, res) => {
+  Mongodb.connect(Mongodb.getTrashItemList, req, res);
+}
