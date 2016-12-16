@@ -180,8 +180,11 @@ var getItemList = (db, req, res) => {
   }
 
   fileItems.find({
-    parentId: params.parentId,
-    username: req.session.username,
+    $and: [
+      {isDelete: {$not: {$eq: true}}},
+      {isDelete: {$not: {$eq: 'true'}}},
+      {parentId: params.parentId},
+      {username: req.session.username},]
   }).toArray((err, items) => {
     if (err === null) {
       response.message = 'Get the item list succeed.';
@@ -238,9 +241,72 @@ var updateItem = (db, req, res) => {
   )
 }
 
+var deleteItem = (db, req, res) => {
+  var fileItems = db.collection('fileItems');
+  const params = req.body;
+
+  const response = {
+    success: '1',
+    message: '',
+    code: '0',
+    data: null,
+  };
+
+  if (!auth(req)) {
+    response.success = '0';
+    response.message = 'User is not authenticated.';
+    response.code = '110';
+    res.json(response);
+    return;
+  }
+
+  let resData = []
+
+  fileItems.find(
+    {$or: [ {id: params.id}, {parentId: params.id}]}
+  ).toArray((err, items) => {
+    if (err === null) {
+      const length = items.length;
+      let cnt = 0;
+      items.map((obj) => {
+        fileItems.findAndModify(
+          {id: obj.id},
+          [['id', 1]],
+          {$set: {isDelete: params.isDelete}},
+          {new: true},
+          (err, doc) => {
+            cnt++;
+            if (err === null) {
+              resData.push(doc.value);
+            } else {
+              response.success = '0';
+              response.message = err.message;
+              response.code = err.code.toString();
+            }
+            if (cnt === length) {
+              response.data = resData;
+              response.message = response.message || 'Delete succeed.';
+              res.json(response);
+            }
+          }
+        )
+      })
+    } else {
+      response.success = '0';
+      response.message = err.message;
+      response.code = err.code.toString();
+
+      res.json(response);
+      return;
+    }
+
+  })
+}
+
 exports.connect = connect
 exports.insertUsers = insertUsers
 exports.findUsers = findUsers
 exports.addItem = addItem
 exports.getItemList = getItemList
 exports.updateItem = updateItem
+exports.deleteItem = deleteItem
