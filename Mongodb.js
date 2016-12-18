@@ -264,9 +264,11 @@ var deleteItem = (db, req, res) => {
   let orArray = [];
   console.log(params);
 
-  params.ids.map((obj) => {
-    orArray.push({id: obj});
-  })
+  if (params.ids instanceof Array) {
+    params.ids.map((obj) => {
+      orArray.push({id: obj});
+    })
+  }
 
   fileItems.find(
     {$or: orArray}
@@ -396,6 +398,71 @@ var getDirectoryList = (db, req, res) => {
 
 }
 
+var updateItems = (db, req, res) => {
+  var fileItems = db.collection('fileItems');
+  const params = req.body;
+
+  const response = {
+    success: '1',
+    message: '',
+    code: '0',
+    data: null,
+  };
+
+  if (!auth(req)) {
+    response.success = '0';
+    response.message = 'User is not authenticated.';
+    response.code = '110';
+    res.json(response);
+    return;
+  }
+
+  let orArray = [];
+  let resData = [];
+  if (params.ids instanceof Array) {
+    params.ids.map((obj) => {
+      orArray.push({id: obj});
+    })
+  }
+
+  fileItems.find({
+    $or: orArray,
+  }).toArray((err, items) => {
+    if (err === null) {
+      const length = items.length;
+      let cnt = 0;
+      items.map((obj) => {
+        fileItems.findAndModify(
+          {id: obj.id},
+          [['id', 1]],
+          {$set: {parentId: params.parentId}},
+          {new: true},
+          (err, doc) => {
+            cnt++;
+            if (err === null) {
+              resData.push(doc.value);
+            } else {
+              response.success = '0';
+              response.message = err.message;
+              response.code = err.code.toString();
+            }
+            if (cnt === length) {
+              response.data = resData;
+              response.message = response.message || 'Update Items succeed.';
+              res.json(response);
+            }
+          }
+        )
+      })
+    } else {
+      response.success = '0';
+      response.message = err.message;
+      response.code = err.code.toString();
+      res.json(response);
+    }
+  })
+}
+
 exports.connect = connect
 exports.insertUsers = insertUsers
 exports.findUsers = findUsers
@@ -405,3 +472,4 @@ exports.updateItem = updateItem
 exports.deleteItem = deleteItem
 exports.getTrashItemList = getTrashItemList
 exports.getDirectoryList = getDirectoryList
+exports.updateItems = updateItems
