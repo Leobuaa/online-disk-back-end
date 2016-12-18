@@ -347,6 +347,55 @@ var getTrashItemList = (db, req, res) => {
   })
 }
 
+var getDirectoryList = (db, req, res) => {
+  var fileItems = db.collection('fileItems');
+  const params = req.body
+
+  const response = {
+    success: '1',
+    message: '',
+    code: '0',
+    data: null,
+  };
+
+  if (!auth(req)) {
+    response.success = '0';
+    response.message = 'User is not authenticated.';
+    response.code = '110';
+    res.json(response);
+    return;
+  }
+
+  fileItems.find({
+    $and: [
+      {isDelete: {$not: {$eq: true}}},
+      {isDelete: {$not: {$eq: 'true'}}},
+      {parentId: params.id},
+      {type: 'directory'},
+    ]
+  }).toArray((err, items) => {
+    if (err === null) {
+      response.message = 'Get directory list succeed.'
+      response.data = items.filter((obj) => {
+        for (let val of params.listCheckedIds) {
+          if (obj.id === val) {
+            return false;
+          }
+        }
+
+        return true;
+      })
+    } else {
+      response.success = '0';
+      response.message = err.message;
+      response.code = err.code.toString();
+    }
+
+    res.json(response);
+  })
+
+}
+
 exports.connect = connect
 exports.insertUsers = insertUsers
 exports.findUsers = findUsers
@@ -355,3 +404,4 @@ exports.getItemList = getItemList
 exports.updateItem = updateItem
 exports.deleteItem = deleteItem
 exports.getTrashItemList = getTrashItemList
+exports.getDirectoryList = getDirectoryList
