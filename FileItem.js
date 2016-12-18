@@ -23,3 +23,7 @@ exports.getTrashItemList = (req, res) => {
 exports.getDirectoryList = (req, res) => {
   Mongodb.connect(Mongodb.getDirectoryList, req, res);
 }
+
+exports.updateItems = (req, res) => {
+  Mongodb.connect(Mongodb.updateItems, req, res);
+}

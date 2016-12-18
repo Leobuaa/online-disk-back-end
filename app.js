@@ -85,6 +85,10 @@ app.post('/getDirectoryList', upload.array(), function (req, res) {
   File.getDirectoryList(req, res);
 })
 
+app.post('/updateItems', upload.array(), function (req, res) {
+  File.updateItems(req, res);
+})
+
 app.listen(3001, function () {
   console.log('Example app listening on port 3001!')
 })
