@@ -429,8 +429,34 @@ var updateItems = (db, req, res) => {
     $or: orArray,
   }).toArray((err, items) => {
     if (err === null) {
-      const length = items.length;
-      let cnt = 0;
+      if (params.copy === true) {
+        copyNewOne(items, response, resData, res, fileItems, params);
+      } else {
+        changeParentId(items, response, resData, res, fileItems, params);
+      }
+    } else {
+      response.success = '0';
+      response.message = err.message;
+      response.code = err.code.toString();
+      res.json(response);
+    }
+  })
+}
+
+function changeParentId(items, response, resData, res, fileItems, params) {
+  const length = items.length;
+  let cnt = 0;
+
+  let orArray = [];
+  items.forEach((obj) => {
+    orArray.push({$and: [{id: obj.id}, {parentId: params.parentId}]});
+  })
+
+  fileItems.remove({
+    $or: orArray
+  }, (err, numberOfRemovedDocs) => {
+    console.log('numberOfRemovedDocs: ', numberOfRemovedDocs);
+    if (err === null) {
       items.map((obj) => {
         fileItems.findAndModify(
           {id: obj.id},
@@ -461,6 +487,63 @@ var updateItems = (db, req, res) => {
       res.json(response);
     }
   })
+
+}
+
+function copyNewOne(items, response, resData, res, fileItems, params) {
+  const length = items.length;
+  let cnt = 0;
+
+  let orArray = [];
+  items.forEach((obj) => {
+    orArray.push({$and: [{id: obj.id}, {parentId: params.parentId}]});
+  })
+
+  // items.forEach((obj) => {
+  //   if (obj.parentId === params.parentId) {
+  //     response.success = '0';
+  //     response.message = 'Can not copy to the same directory.'
+  //     response.code = '111';
+  //     return;
+  //   }
+  // })
+
+  fileItems.remove({
+    $or: orArray,
+  }, (err, numberOfRemovedDocs) => {
+    console.log('numberOfRemovedDocs: ', numberOfRemovedDocs);
+    if (err === null) {
+      items.map((obj) => {
+        obj.parentId = params.parentId;
+        delete obj._id;
+        fileItems.insertOne(obj, (err, result) => {
+          cnt++;
+          if (err === null) {
+            console.log("Insert 1 user into the fileItems collection");
+            resData.push(result.ops[0]);
+          } else {
+            console.log("Insert error occured.");
+            console.log(err);
+            response.success = '0';
+            response.code = err.code.toString();
+            response.message = err.message;
+          }
+
+          if (cnt == length) {
+            response.data = resData;
+            response.message = response.message || 'Copy Items succeed.';
+            res.json(response);
+          }
+        })
+      })
+    } else {
+      response.success = '0';
+      response.message = err.message;
+      response.code = err.code.toString();
+      res.json(response);
+    }
+  })
+
 }
 
 exports.connect = connect
