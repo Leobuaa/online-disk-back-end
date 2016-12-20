@@ -499,14 +499,12 @@ function copyNewOne(items, response, resData, res, fileItems, params) {
     orArray.push({$and: [{id: obj.id}, {parentId: params.parentId}]});
   })
 
-  // items.forEach((obj) => {
-  //   if (obj.parentId === params.parentId) {
-  //     response.success = '0';
-  //     response.message = 'Can not copy to the same directory.'
-  //     response.code = '111';
-  //     return;
-  //   }
-  // })
+  items.forEach((obj) => {
+    if (obj.parentId === params.parentId) {
+      response.success = '0';
+      response.code = '111';
+    }
+  })
 
   fileItems.remove({
     $or: orArray,
