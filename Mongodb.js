@@ -444,13 +444,33 @@ var updateItems = (db, req, res) => {
 }
 
 function changeParentId(items, response, resData, res, fileItems, params) {
-  const length = items.length;
-  let cnt = 0;
-
   let orArray = [];
   items.forEach((obj) => {
     orArray.push({$and: [{id: obj.id}, {parentId: params.parentId}]});
   })
+
+  items.forEach((obj) => {
+    if (obj.parentId === params.parentId) {
+      response.success = '0';
+      response.code = '111';
+      return false;
+    }
+  })
+
+  items = items.filter((obj) => {
+    if (obj.parentId === params.parentId) {
+      return false;
+    }
+    return true;
+  })
+
+  const length = items.length;
+  let cnt = 0;
+
+  if (length === 0) {
+    res.json(response);
+    return;
+  }
 
   fileItems.remove({
     $or: orArray
@@ -462,7 +482,7 @@ function changeParentId(items, response, resData, res, fileItems, params) {
           {id: obj.id},
           [['id', 1]],
           {$set: {parentId: params.parentId}},
-          {new: true},
+          {new: true, upsert: true},
           (err, doc) => {
             cnt++;
             if (err === null) {
@@ -491,9 +511,6 @@ function changeParentId(items, response, resData, res, fileItems, params) {
 }
 
 function copyNewOne(items, response, resData, res, fileItems, params) {
-  const length = items.length;
-  let cnt = 0;
-
   let orArray = [];
   items.forEach((obj) => {
     orArray.push({$and: [{id: obj.id}, {parentId: params.parentId}]});
@@ -503,8 +520,24 @@ function copyNewOne(items, response, resData, res, fileItems, params) {
     if (obj.parentId === params.parentId) {
       response.success = '0';
       response.code = '111';
+      return false;
     }
   })
+
+  items = items.filter((obj) => {
+    if (obj.parentId === params.parentId) {
+      return false;
+    }
+    return true;
+  })
+
+  const length = items.length;
+  let cnt = 0;
+
+  if (length === 0) {
+    res.json(response);
+    return;
+  }
 
   fileItems.remove({
     $or: orArray,
