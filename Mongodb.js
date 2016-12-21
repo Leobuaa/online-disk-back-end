@@ -589,7 +589,7 @@ var getUserInfo = (db, req, res) => {
     data: null,
   };
 
-  if (!auth()) {
+  if (!auth(req)) {
     response.success = '0';
     response.message = 'User is not authenticated.';
     response.code = '110';
