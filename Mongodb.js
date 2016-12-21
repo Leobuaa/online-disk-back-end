@@ -619,6 +619,58 @@ var getUserInfo = (db, req, res) => {
   })
 }
 
+var updateUserInfo = (db, req, res) => {
+  var users = db.collection('users');
+  const params = req.body;
+
+  const response = {
+    success: '1',
+    message: '',
+    code: '',
+    data: null,
+  };
+
+  if (!auth(req)) {
+    response.success = '0';
+    response.message = 'User is not authenticated.';
+    response.code = '110';
+    res.json(response);
+    return;
+  }
+
+  console.log(params);
+
+  for (let props in params) {
+    console.log(props);
+    if (props !== 'phone' && props !== 'email' && props !== 'gender' && props !== 'password' && props !== 'userDesc') {
+      response.success = '0';
+      response.message = 'User try to update invalid user info. It is refused.';
+      response.code = '220';
+      res.json(response);
+      return;
+    }
+  }
+
+  users.findAndModify(
+    {username: req.session.username},
+    [['id', 1]],
+    {$set: params},
+    {new: true},
+    (err, doc) => {
+      if (err === null) {
+        response.message = 'Update succeed.'
+        response.data = doc.value;
+      } else {
+        response.success = '0';
+        response.message = err.message;
+        response.code = err.code.toString();
+      }
+
+      res.json(response);
+    }
+  )
+}
+
 exports.connect = connect
 exports.insertUsers = insertUsers
 exports.findUsers = findUsers
@@ -630,3 +682,4 @@ exports.getTrashItemList = getTrashItemList
 exports.getDirectoryList = getDirectoryList
 exports.updateItems = updateItems
 exports.getUserInfo = getUserInfo
+exports.updateUserInfo = updateUserInfo
