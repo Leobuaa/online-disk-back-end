@@ -89,6 +89,10 @@ app.post('/updateItems', upload.array(), function (req, res) {
   File.updateItems(req, res);
 })
 
+app.post('/getUserInfo', upload.array(), function (req, res) {
+  User.getUserInfo(req, res);
+})
+
 app.listen(3001, function () {
   console.log('Example app listening on port 3001!')
 })

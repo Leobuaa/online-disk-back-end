@@ -222,7 +222,7 @@ var updateItem = (db, req, res) => {
   }
 
   fileItems.findAndModify(
-    {id: params.id},
+    {id: params.id, username: req.session.username},
     [['id', 1]],
     {$set: {title: params.title, updatedAt: params.updatedAt}},
     {new: true},
@@ -278,7 +278,7 @@ var deleteItem = (db, req, res) => {
       let cnt = 0;
       items.map((obj) => {
         fileItems.findAndModify(
-          {id: obj.id},
+          {id: obj.id, username: req.session.username},
           [['id', 1]],
           {$set: {isDelete: params.isDelete}},
           {new: true},
@@ -374,6 +374,7 @@ var getDirectoryList = (db, req, res) => {
       {isDelete: {$not: {$eq: 'true'}}},
       {parentId: params.id},
       {type: 'directory'},
+      {username: req.session.username}
     ]
   }).toArray((err, items) => {
     if (err === null) {
@@ -421,7 +422,7 @@ var updateItems = (db, req, res) => {
   let resData = [];
   if (params.ids instanceof Array) {
     params.ids.map((obj) => {
-      orArray.push({id: obj});
+      orArray.push({$and: [{id: obj}, {username: req.session.username}]});
     })
   }
 
@@ -577,6 +578,47 @@ function copyNewOne(items, response, resData, res, fileItems, params) {
 
 }
 
+var getUserInfo = (db, req, res) => {
+  var users = db.collection('users');
+  const params = req.body;
+
+  const response = {
+    success: '1',
+    message: '',
+    code: '',
+    data: null,
+  };
+
+  if (!auth()) {
+    response.success = '0';
+    response.message = 'User is not authenticated.';
+    response.code = '110';
+    res.json(response);
+    return;
+  }
+
+  users.findOne({
+    username: params.username
+  }, (err, result) => {
+    if (err === null) {
+      if (result === null) {
+        response.success = '0';
+        response.message = 'Username does not exist.';
+      } else {
+        response.message = 'Get user info succeed.';
+        delete result.password;
+        response.data = result;
+      }
+    } else {
+      response.success = '0';
+      response.message = err.message;
+      response.code = err.code.toString();
+    }
+
+    res.json(response);
+  })
+}
+
 exports.connect = connect
 exports.insertUsers = insertUsers
 exports.findUsers = findUsers
@@ -587,3 +629,4 @@ exports.deleteItem = deleteItem
 exports.getTrashItemList = getTrashItemList
 exports.getDirectoryList = getDirectoryList
 exports.updateItems = updateItems
+exports.getUserInfo = getUserInfo

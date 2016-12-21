@@ -1,14 +1,14 @@
 var Mongodb = require('./Mongodb.js')
 
-var register = (req, res) => {
+exports.register = (req, res) => {
   Mongodb.connect(Mongodb.insertUsers, req, res);
 }
 
-var login = (req, res) => {
+exports.login = (req, res) => {
   Mongodb.connect(Mongodb.findUsers, req, res);
 }
 
-var isLogin = (req, res) => {
+exports.isLogin = (req, res) => {
   const sess = req.session;
   const response = {
     success: '1',
@@ -28,6 +28,6 @@ var isLogin = (req, res) => {
   res.json(response);
 }
 
-exports.register = register;
-exports.login = login;
-exports.isLogin = isLogin;
+exports.getUserInfo = (req, res) => {
+  Mongodb.connect(Mongodb.getUserInfo, req, res);
+}
