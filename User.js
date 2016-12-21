@@ -35,3 +35,7 @@ exports.getUserInfo = (req, res) => {
 exports.updateUserInfo = (req, res) => {
   Mongodb.connect(Mongodb.updateUserInfo, req, res);
 }
+
+exports.updatePassword = (req, res) => {
+  Mongodb.connect(Mongodb.updatePassword, req, res);
+}

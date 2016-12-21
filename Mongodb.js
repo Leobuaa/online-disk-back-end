@@ -671,6 +671,67 @@ var updateUserInfo = (db, req, res) => {
   )
 }
 
+var updatePassword = (db, req, res) => {
+  var users = db.collection('users');
+  const params = req.body;
+
+  const response = {
+    success: '1',
+    message: '',
+    code: '',
+    data: null,
+  };
+
+  if (!auth(req)) {
+    response.success = '0';
+    response.message = 'User is not authenticated.';
+    response.code = '110';
+    res.json(response);
+    return;
+  }
+
+  users.findOne({
+    username: req.session.username,
+    password: md5(params.oldPassword)
+  }, (err, result) => {
+    if (err === null) {
+      if (result === null) {
+        response.success = '0';
+        response.message = 'The old password is wrong or username does not exist.';
+        response.code = '1';
+        res.json(response);
+      } else {
+        users.findAndModify(
+          {username: result.username},
+          [['id', 1]],
+          {$set: {password: md5(params.newPassword)}},
+          {new: true},
+          (err, doc) => {
+            if (err === null) {
+              response.message = 'Update password succeed.';
+              delete doc.value.password;
+              response.data = doc.value;
+            } else {
+              response.success = '0';
+              response.message = err.message;
+              response.code = err.code.toString();
+            }
+
+            res.json(response);
+          }
+        )
+      }
+
+    } else {
+      response.success = '0';
+      response.message = err.message;
+      response.code = err.code.toString();
+      res.json(response);
+    }
+
+  })
+}
+
 exports.connect = connect
 exports.insertUsers = insertUsers
 exports.findUsers = findUsers
@@ -683,3 +744,4 @@ exports.getDirectoryList = getDirectoryList
 exports.updateItems = updateItems
 exports.getUserInfo = getUserInfo
 exports.updateUserInfo = updateUserInfo
+exports.updatePassword = updatePassword

@@ -97,6 +97,10 @@ app.post('/updateUserInfo', upload.array(), function (req, res) {
   User.updateUserInfo(req, res);
 })
 
+app.post('/updatePassword', upload.array(), function (req, res) {
+  User.updatePassword(req, res);
+})
+
 app.listen(3001, function () {
   console.log('Example app listening on port 3001!')
 })
