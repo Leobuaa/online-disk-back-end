@@ -39,3 +39,7 @@ exports.updateUserInfo = (req, res) => {
 exports.updatePassword = (req, res) => {
   Mongodb.connect(Mongodb.updatePassword, req, res);
 }
+
+exports.updateAvatar = (req, res) => {
+  Mongodb.connect(Mongodb.updateAvatar, req, res);
+}

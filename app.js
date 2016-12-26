@@ -1,12 +1,23 @@
 var express = require('express')
 var app = express()
+var serveStatic = require('serve-static');
 var bodyParser = require('body-parser');
+var uniqid = require('uniqid');
 var multer = require('multer'); // v1.0.5
-var upload = multer(); // for parsing multipart/form-data
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/')
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.fieldname + '-' + uniqid() + Date.now())
+  }
+})
+var upload = multer({ storage: storage }); // for parsing multipart/form-data
 var session = require('express-session')
 var User = require('./User.js')
 var File = require('./FileItem.js');
 
+app.use('/uploads', express.static('uploads'))
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 app.use(session({
@@ -99,6 +110,10 @@ app.post('/updateUserInfo', upload.array(), function (req, res) {
 
 app.post('/updatePassword', upload.array(), function (req, res) {
   User.updatePassword(req, res);
+})
+
+app.post('/updateAvatar', upload.single('avatar'), function (req, res, next) {
+  User.updateAvatar(req, res);
 })
 
 app.listen(3001, function () {

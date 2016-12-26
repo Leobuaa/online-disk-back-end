@@ -732,6 +732,48 @@ var updatePassword = (db, req, res) => {
   })
 }
 
+var updateAvatar = (db, req, res) => {
+  var users = db.collection('users');
+  const avatar = req.file;
+
+  console.log(avatar);
+
+  const response = {
+    success: '1',
+    message: '',
+    code: '',
+    data: null,
+  };
+
+  if (!auth(req)) {
+    response.success = '0';
+    response.message = 'User is not authenticated.';
+    response.code = '110';
+    res.json(response);
+    return;
+  }
+
+  users.findAndModify(
+    {username: req.session.username},
+    [['id', 1]],
+    {$set: {avatarURL: avatar.path}},
+    {new: true},
+    (err, doc) => {
+      if (err === null) {
+        response.message = 'Update Aavtar succeed.';
+        delete doc.value.password;
+        response.data = doc.value;
+      } else {
+        response.success = '0';
+        response.message = err.message;
+        response.code = err.code.toString();
+      }
+
+      res.json(response);
+  })
+
+}
+
 exports.connect = connect
 exports.insertUsers = insertUsers
 exports.findUsers = findUsers
@@ -745,3 +787,4 @@ exports.updateItems = updateItems
 exports.getUserInfo = getUserInfo
 exports.updateUserInfo = updateUserInfo
 exports.updatePassword = updatePassword
+exports.updateAvatar = updateAvatar
