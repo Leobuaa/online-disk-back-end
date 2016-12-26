@@ -107,6 +107,7 @@ var findUsers = (db, req, res) => {
             email: result.email,
             rootDir: result.rootDir,
             sessionId: req.session.id,
+            avatarURL: result.avatarURL,
           };
           if (req.session) {
             req.session.username = params.username;
