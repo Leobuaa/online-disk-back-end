@@ -9,7 +9,9 @@ var storage = multer.diskStorage({
     cb(null, 'uploads/')
   },
   filename: function (req, file, cb) {
-    cb(null, file.fieldname + '-' + uniqid() + Date.now())
+    const originalName = file.originalname;
+    const extension = originalName.substr(originalName.lastIndexOf('.'));
+    cb(null, file.fieldname + uniqid() + Date.now() + extension)
   }
 })
 var upload = multer({ storage: storage }); // for parsing multipart/form-data
