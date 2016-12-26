@@ -223,7 +223,7 @@ var updateItem = (db, req, res) => {
   }
 
   fileItems.findAndModify(
-    {id: params.id, username: req.session.username},
+    {id: params.id, username: req.session.username, parentId: params.parentId},
     [['id', 1]],
     {$set: {title: params.title, updatedAt: params.updatedAt}},
     {new: true},
@@ -267,7 +267,7 @@ var deleteItem = (db, req, res) => {
 
   if (params.ids instanceof Array) {
     params.ids.map((obj) => {
-      orArray.push({id: obj});
+      orArray.push({id: obj.id, parentId: obj.parentId});
     })
   }
 
@@ -279,7 +279,7 @@ var deleteItem = (db, req, res) => {
       let cnt = 0;
       items.map((obj) => {
         fileItems.findAndModify(
-          {id: obj.id, username: req.session.username},
+          {id: obj.id, parentId: obj.parentId,username: req.session.username},
           [['id', 1]],
           {$set: {isDelete: params.isDelete}},
           {new: true},
