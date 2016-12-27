@@ -381,8 +381,8 @@ var getDirectoryList = (db, req, res) => {
     if (err === null) {
       response.message = 'Get directory list succeed.'
       response.data = items.filter((obj) => {
-        for (let val of params.listCheckedIds) {
-          if (obj.id === val) {
+        for (let i = 0; i < params.listCheckedIds.length; i++) {
+          if (params.listCheckedIds[i].id === obj.id) {
             return false;
           }
         }
@@ -423,7 +423,7 @@ var updateItems = (db, req, res) => {
   let resData = [];
   if (params.ids instanceof Array) {
     params.ids.map((obj) => {
-      orArray.push({$and: [{id: obj}, {username: req.session.username}]});
+      orArray.push({$and: [{id: obj.id}, {username: req.session.username}, {parentId: obj.parentId}]});
     })
   }
 
@@ -481,7 +481,7 @@ function changeParentId(items, response, resData, res, fileItems, params) {
     if (err === null) {
       items.map((obj) => {
         fileItems.findAndModify(
-          {id: obj.id},
+          {id: obj.id, parentId: obj.parentId},
           [['id', 1]],
           {$set: {parentId: params.parentId}},
           {new: true, upsert: true},
