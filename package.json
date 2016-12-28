@@ -21,6 +21,7 @@
     "body-parser": "^1.15.2",
     "express": "^4.14.0",
     "express-session": "^1.14.2",
+    "express-zip": "^2.0.1",
     "mongodb": "^2.2.14",
     "mongoose": "^4.7.2",
     "multer": "^1.2.1",

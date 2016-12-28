@@ -4,6 +4,7 @@ var md5 = require('blueimp-md5')
 var session = require('express-session')
 var helper = require('./helper.js')
 var uniqid = require('uniqid')
+var zip = require('express-zip')
 
 var auth = (req) => {
   if (req.session.username) {
@@ -783,6 +784,27 @@ var updateAvatar = (db, req, res) => {
 
 }
 
+var download = (db, req, res) => {
+  var fileItems = db.collection('fileItems');
+  const params = req.body;
+
+  const response = {
+    success: '1',
+    message: '',
+    code: '0',
+    data: null,
+  };
+
+  if (!auth(req)) {
+    response.success = '0';
+    response.message = 'User is not authenticated.';
+    response.code = '110';
+    res.json(response);
+    return;
+  }
+
+}
+
 exports.connect = connect
 exports.insertUsers = insertUsers
 exports.findUsers = findUsers
@@ -797,3 +819,4 @@ exports.getUserInfo = getUserInfo
 exports.updateUserInfo = updateUserInfo
 exports.updatePassword = updatePassword
 exports.updateAvatar = updateAvatar
+exports.download = download

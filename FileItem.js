@@ -27,3 +27,7 @@ exports.getDirectoryList = (req, res) => {
 exports.updateItems = (req, res) => {
   Mongodb.connect(Mongodb.updateItems, req, res);
 }
+
+exports.download = (req, res) => {
+  Mongodb.connect(Mongodb.download, req, res);
+}

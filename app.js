@@ -118,6 +118,16 @@ app.post('/updateAvatar', upload.single('avatar'), function (req, res, next) {
   User.updateAvatar(req, res);
 })
 
+app.post('/download', upload.array(), function (req, res) {
+  File.download(req, res);
+})
+
+// single file download.
+app.get('/download/uploads/:filepath', function (req, res) {
+  const params = req.params;
+  res.download('uploads/' + params.filepath);
+})
+
 app.listen(3001, function () {
   console.log('Example app listening on port 3001!')
 })
