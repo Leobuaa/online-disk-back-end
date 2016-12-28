@@ -133,8 +133,8 @@ var addItem = (db, req, res) => {
     console.log(req.files);
     file = req.files[0]
     console.log(file);
+    params.filePath = file.path;
   }
-
 
   const response = {
     success: '1',
@@ -152,7 +152,6 @@ var addItem = (db, req, res) => {
   }
 
   params.username = req.session.username;
-  params.filePath = file.path;
 
   fileItems.insertOne(params, (err, result) => {
     if (err === null) {
