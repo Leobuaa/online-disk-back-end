@@ -74,7 +74,7 @@ app.post('/isLogin', upload.array(), function (req, res) {
   User.isLogin(req, res);
 });
 
-app.post('/addItem', upload.array(), function (req, res) {
+app.post('/addItem', upload.array('files'), function (req, res) {
   File.addItem(req, res);
 });
 

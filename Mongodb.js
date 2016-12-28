@@ -127,6 +127,14 @@ var findUsers = (db, req, res) => {
 var addItem = (db, req, res) => {
   var fileItems = db.collection('fileItems');
   let params = req.body;
+  // First, single file.
+  let file;
+  if (req.files && req.files.length > 0) {
+    console.log(req.files);
+    file = req.files[0]
+    console.log(file);
+  }
+
 
   const response = {
     success: '1',
@@ -144,6 +152,7 @@ var addItem = (db, req, res) => {
   }
 
   params.username = req.session.username;
+  params.filePath = file.path;
 
   fileItems.insertOne(params, (err, result) => {
     if (err === null) {
