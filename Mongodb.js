@@ -401,11 +401,11 @@ var getDirectoryList = (db, req, res) => {
       response.message = 'Get directory list succeed.'
       response.data = items.filter((obj) => {
         for (let i = 0; i < params.listCheckedIds.length; i++) {
-          if (params.listCheckedIds[i].id === obj.id) {
+          // console.log(params.listCheckedIds[i], obj._id);
+          if (params.listCheckedIds[i] == obj._id) {
             return false;
           }
         }
-
         return true;
       })
     } else {
@@ -441,8 +441,8 @@ var updateItems = (db, req, res) => {
   let orArray = [];
   let resData = [];
   if (params.ids instanceof Array) {
-    params.ids.map((obj) => {
-      orArray.push({$and: [{id: obj.id}, {username: req.session.username}, {parentId: obj.parentId}]});
+    params.ids.map((_id) => {
+      orArray.push({$and: [{_id: new ObjectID(_id)}, {username: req.session.username}]});
     })
   }
 
@@ -465,135 +465,74 @@ var updateItems = (db, req, res) => {
 }
 
 function changeParentId(items, response, resData, res, fileItems, params) {
-  let orArray = [];
-  items.forEach((obj) => {
-    orArray.push({$and: [{id: obj.id}, {parentId: params.parentId}]});
-  })
-
-  items.forEach((obj) => {
-    if (obj.parentId === params.parentId) {
-      response.success = '0';
-      response.code = '111';
-      return false;
-    }
-  })
-
-  items = items.filter((obj) => {
-    if (obj.parentId === params.parentId) {
-      return false;
-    }
-    return true;
-  })
-
-  const length = items.length;
   let cnt = 0;
+  const length = items.length;
 
   if (length === 0) {
+    response.success = '0';
+    response.message = 'No items found.';
     res.json(response);
     return;
   }
 
-  fileItems.remove({
-    $or: orArray
-  }, (err, numberOfRemovedDocs) => {
-    console.log('numberOfRemovedDocs: ', numberOfRemovedDocs);
-    if (err === null) {
-      items.map((obj) => {
-        fileItems.findAndModify(
-          {id: obj.id, parentId: obj.parentId},
-          [['id', 1]],
-          {$set: {parentId: params.parentId}},
-          {new: true, upsert: true},
-          (err, doc) => {
-            cnt++;
-            if (err === null) {
-              resData.push(doc.value);
-            } else {
-              response.success = '0';
-              response.message = err.message;
-              response.code = err.code.toString();
-            }
-            if (cnt === length) {
-              response.data = resData;
-              response.message = response.message || 'Update Items succeed.';
-              res.json(response);
-            }
-          }
-        )
-      })
-    } else {
-      response.success = '0';
-      response.message = err.message;
-      response.code = err.code.toString();
-      res.json(response);
-    }
+  items.map((obj) => {
+    fileItems.findAndModify(
+      {_id: obj._id},
+      [['id', 1]],
+      {$set: {parentId: params.parentId}},
+      {new: true, upsert: true},
+      (err, doc) => {
+        cnt++;
+        if (err === null) {
+          resData.push(doc.value);
+        } else {
+          response.success = '0';
+          response.message = err.message;
+          response.code = err.code.toString();
+        }
+        if (cnt === length) {
+          response.data = resData;
+          response.message = response.message || 'Update Items succeed.';
+          res.json(response);
+        }
+      }
+    )
   })
-
 }
 
 function copyNewOne(items, response, resData, res, fileItems, params) {
-  let orArray = [];
-  items.forEach((obj) => {
-    orArray.push({$and: [{id: obj.id}, {parentId: params.parentId}]});
-  })
-
-  items.forEach((obj) => {
-    if (obj.parentId === params.parentId) {
-      response.success = '0';
-      response.code = '111';
-      return false;
-    }
-  })
-
-  items = items.filter((obj) => {
-    if (obj.parentId === params.parentId) {
-      return false;
-    }
-    return true;
-  })
-
   const length = items.length;
   let cnt = 0;
 
   if (length === 0) {
+    response.success = '0';
+    response.message = 'No items found.';
     res.json(response);
     return;
   }
 
-  fileItems.remove({
-    $or: orArray,
-  }, (err, numberOfRemovedDocs) => {
-    console.log('numberOfRemovedDocs: ', numberOfRemovedDocs);
-    if (err === null) {
-      items.map((obj) => {
-        obj.parentId = params.parentId;
-        delete obj._id;
-        fileItems.insertOne(obj, (err, result) => {
-          cnt++;
-          if (err === null) {
-            console.log("Insert 1 user into the fileItems collection");
-            resData.push(result.ops[0]);
-          } else {
-            console.log("Insert error occured.");
-            console.log(err);
-            response.success = '0';
-            response.code = err.code.toString();
-            response.message = err.message;
-          }
+  items.map((obj) => {
+    obj.parentId = params.parentId;
+    delete obj._id;
+    fileItems.insertOne(obj, (err, result) => {
+      cnt++;
+      if (err === null) {
+        console.log("Insert 1 user into the fileItems collection");
+        resData.push(result.ops[0]);
+      } else {
+        console.log("Insert error occured.");
+        console.log(err);
+        response.success = '0';
+        response.code = err.code.toString();
+        response.message = err.message;
+      }
 
-          if (cnt == length) {
-            response.data = resData;
-            response.message = response.message || 'Copy Items succeed.';
-            res.json(response);
-          }
-        })
-      })
-    } else {
-      response.success = '0';
-      response.message = err.message;
-      response.code = err.code.toString();
-      res.json(response);
-    }
+      if (cnt == length) {
+        response.data = resData;
+        response.message = response.message || 'Copy Items succeed.';
+        res.json(response);
+      }
+    })
   })
 
 }
