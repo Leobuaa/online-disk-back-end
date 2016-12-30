@@ -5,6 +5,7 @@ var session = require('express-session')
 var helper = require('./helper.js')
 var uniqid = require('uniqid')
 var zip = require('express-zip')
+var ObjectID = mongodb.ObjectID;
 
 var auth = (req) => {
   if (req.session.username) {
@@ -275,20 +276,29 @@ var deleteItem = (db, req, res) => {
   console.log(params);
 
   if (params.ids instanceof Array) {
-    params.ids.map((obj) => {
-      orArray.push({id: obj.id, parentId: obj.parentId});
+    params.ids.map((_id) => {
+      orArray.push({_id: new ObjectID(_id)});
     })
   }
+
+  console.log(orArray);
 
   fileItems.find(
     {$or: orArray}
   ).toArray((err, items) => {
+    console.log(items);
     if (err === null) {
       const length = items.length;
       let cnt = 0;
+      if (length === 0) {
+        response.success = '0';
+        response.message = 'No items found.'
+        res.json(response);
+        return;
+      }
       items.map((obj) => {
         fileItems.findAndModify(
-          {id: obj.id, parentId: obj.parentId,username: req.session.username},
+          {_id: obj._id, username: req.session.username},
           [['id', 1]],
           {$set: {isDelete: params.isDelete}},
           {new: true},
