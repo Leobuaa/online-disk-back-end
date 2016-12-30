@@ -400,13 +400,14 @@ var getDirectoryList = (db, req, res) => {
     if (err === null) {
       response.message = 'Get directory list succeed.'
       response.data = items.filter((obj) => {
-        for (let i = 0; i < params.listCheckedIds.length; i++) {
-          // console.log(params.listCheckedIds[i], obj._id);
-          if (params.listCheckedIds[i] == obj._id) {
+        let flag = true;
+        params.listCheckedIds.forEach((_id) => {
+          if (_id == obj._id) {
+            flag = false;
             return false;
           }
-        }
-        return true;
+        })
+        return flag;
       })
     } else {
       response.success = '0';
