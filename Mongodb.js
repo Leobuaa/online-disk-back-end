@@ -22,8 +22,12 @@ var connect = (callback, req, res) => {
   // Use connect method to connect to the Server
   MongoClient.connect(url, function(err, db) {
     // assert.equal(null, err);
-    console.log("Connected correctly to db server");
-    callback(db, req, res);
+    if (err === null) {
+      console.log("Connected correctly to db server");
+      callback(db, req, res);
+    } else {
+      console.log(err);
+    }
   });
 };
 
