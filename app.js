@@ -82,6 +82,10 @@ app.get('/getItemList/:parentId', function (req, res) {
   File.getItemList(req, res);
 })
 
+app.get('/getItemList/type/:typeName', function (req, res) {
+  File.getItemListByType(req, res);
+})
+
 app.get('/getTrashItemList', function (req, res) {
   File.getTrashItemList(req, res);
 })

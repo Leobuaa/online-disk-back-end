@@ -8,6 +8,10 @@ exports.getItemList = (req, res) => {
   Mongodb.connect(Mongodb.getItemList, req, res);
 }
 
+exports.getItemListByType = (req, res) => {
+  Mongodb.connect(Mongodb.getItemListByType, req, res);
+}
+
 exports.updateItem = (req, res) => {
   Mongodb.connect(Mongodb.updateItem, req, res);
 }
