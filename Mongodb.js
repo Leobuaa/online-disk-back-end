@@ -755,6 +755,46 @@ var download = (db, req, res) => {
 
 }
 
+var completeDelete = (db, req, res) => {
+  var fileItems = db.collection('fileItems');
+  const params = req.body;
+
+  const response = {
+    success: '1',
+    message: '',
+    code: '0',
+    data: null,
+  };
+
+  if (!auth(req)) {
+    response.success = '0';
+    response.message = 'User is not authenticated.';
+    response.code = '110';
+    res.json(response);
+    return;
+  }
+
+  const orArray = params.ids.map((_id) => {
+    return {_id: new ObjectID(_id)};
+  });
+
+  fileItems.remove({
+    $or: orArray
+  }, (err, numberOfRemovedDocs) => {
+    if (err === null) {
+      response.message = 'Delete succeed.';
+      response.data = {
+        numberOfRemovedDocs: numberOfRemovedDocs,
+      };
+    } else {
+      response.success = '0';
+      response.message = err.message;
+      response.code = err.code.toString();
+    }
+    res.json(response);
+  })
+}
+
 exports.connect = connect
 exports.insertUsers = insertUsers
 exports.findUsers = findUsers
@@ -770,3 +810,4 @@ exports.updateUserInfo = updateUserInfo
 exports.updatePassword = updatePassword
 exports.updateAvatar = updateAvatar
 exports.download = download
+exports.completeDelete = completeDelete

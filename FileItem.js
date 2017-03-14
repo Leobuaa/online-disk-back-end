@@ -31,3 +31,7 @@ exports.updateItems = (req, res) => {
 exports.download = (req, res) => {
   Mongodb.connect(Mongodb.download, req, res);
 }
+
+exports.completeDelete = (req, res) => {
+  Mongodb.connect(Mongodb.completeDelete, req, res);
+}

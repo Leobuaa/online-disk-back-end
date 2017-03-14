@@ -128,6 +128,10 @@ app.get('/download/uploads/:filepath', function (req, res) {
   res.download('uploads/' + params.filepath);
 })
 
+app.post('/completeDelete', upload.array(), function (req, res) {
+  File.completeDelete(req, res);
+})
+
 app.listen(3001, function () {
   console.log('Example app listening on port 3001!')
 })
