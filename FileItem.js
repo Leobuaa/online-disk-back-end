@@ -39,3 +39,7 @@ exports.download = (req, res) => {
 exports.completeDelete = (req, res) => {
   Mongodb.connect(Mongodb.completeDelete, req, res);
 }
+
+exports.showFile = (req, res) => {
+  Mongodb.connect(Mongodb.showFile, req, res);
+}

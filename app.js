@@ -19,7 +19,6 @@ var session = require('express-session')
 var User = require('./User.js')
 var File = require('./FileItem.js');
 
-app.use('/uploads', express.static('uploads'))
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 app.use(session({
@@ -122,18 +121,23 @@ app.post('/updateAvatar', upload.single('avatar'), function (req, res, next) {
   User.updateAvatar(req, res);
 })
 
+// Todo download a list of files
 app.post('/download', upload.array(), function (req, res) {
   File.download(req, res);
 })
 
 // single file download.
-app.get('/download/uploads/:filepath', function (req, res) {
-  const params = req.params;
-  res.download('uploads/' + params.filepath);
+app.get('/download/uploads/:filePath', function (req, res) {
+  File.download(req, res);
 })
 
 app.post('/completeDelete', upload.array(), function (req, res) {
   File.completeDelete(req, res);
+})
+
+// online show file
+app.get('/uploads/:filePath', function(req, res) {
+  File.showFile(req, res);
 })
 
 app.listen(3001, function () {

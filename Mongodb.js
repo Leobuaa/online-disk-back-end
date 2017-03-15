@@ -5,6 +5,7 @@ var session = require('express-session')
 var helper = require('./helper.js')
 var uniqid = require('uniqid')
 var zip = require('express-zip')
+var path = require('path')
 var ObjectID = mongodb.ObjectID;
 
 var auth = (req) => {
@@ -779,8 +780,13 @@ var updateAvatar = (db, req, res) => {
 }
 
 var download = (db, req, res) => {
-  var fileItems = db.collection('fileItems');
-  const params = req.body;
+  // var fileItems = db.collection('fileItems');
+  let params = req.params;
+  if (params === null || Object.getOwnPropertyNames(params).length === 0) {
+    params = req.body;
+  }
+
+  console.log(req);
 
   const response = {
     success: '1',
@@ -794,9 +800,11 @@ var download = (db, req, res) => {
     response.message = 'User is not authenticated.';
     response.code = '110';
     res.json(response);
+    console.log(response);
     return;
   }
 
+  res.download('uploads/' + params.filePath);
 }
 
 var completeDelete = (db, req, res) => {
@@ -839,6 +847,49 @@ var completeDelete = (db, req, res) => {
   })
 }
 
+var showFile = (db, req, res) => {
+  const params = req.params;
+  const filePath = 'uploads/' + params.filePath;
+  var fileItems = db.collection('fileItems');
+  console.log(req);
+
+  const response = {
+    success: '1',
+    message: '',
+    code: '0',
+    data: null,
+  };
+
+  if (!auth(req)) {
+    response.success = '0';
+    response.message = 'User is not authenticated.';
+    response.code = '110';
+    res.json(response);
+    console.log(response);
+    return;
+  }
+
+  fileItems.find({
+    $and: [
+      {username: req.session.username},
+      {filePath: filePath},
+    ]
+  }).toArray((err, items) => {
+    if (err === null) {
+      response.message = 'Get the file succeed.';
+      if (items != null && items.length > 0) {
+        console.log(items);
+        res.sendFile(path.join(__dirname) + '/' + filePath);
+      }
+    } else {
+      response.success = '0';
+      response.message = err.message;
+      response.code = err.code.toString();
+      res.json(response);
+    }
+  })
+}
+
 exports.connect = connect
 exports.insertUsers = insertUsers
 exports.findUsers = findUsers
@@ -856,3 +907,4 @@ exports.updatePassword = updatePassword
 exports.updateAvatar = updateAvatar
 exports.download = download
 exports.completeDelete = completeDelete
+exports.showFile = showFile
