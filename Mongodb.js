@@ -880,13 +880,16 @@ var showFile = (db, req, res) => {
       if (items != null && items.length > 0) {
         console.log(items);
         res.sendFile(path.join(__dirname) + '/' + filePath);
+      } else {
+        response.success = '0';
+        response.message = 'File do not exist.';
       }
     } else {
       response.success = '0';
       response.message = err.message;
       response.code = err.code.toString();
-      res.json(response);
     }
+    res.json(response);
   })
 }
 
