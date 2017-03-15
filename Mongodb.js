@@ -883,13 +883,14 @@ var showFile = (db, req, res) => {
       } else {
         response.success = '0';
         response.message = 'File do not exist.';
+        res.json(response);
       }
     } else {
       response.success = '0';
       response.message = err.message;
       response.code = err.code.toString();
+      res.json(response);
     }
-    res.json(response);
   })
 }
 
