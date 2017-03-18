@@ -19,6 +19,20 @@ var session = require('express-session')
 var User = require('./User.js')
 var File = require('./FileItem.js');
 
+var publicStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'public/')
+  },
+  filename: function (req, file, cb) {
+    const originalName = file.originalname;
+    const extension = originalName.substr(originalName.lastIndexOf('.'));
+    cb(null, file.fieldname + uniqid() + Date.now() + extension)
+  }
+})
+
+var publicUpload = multer({storage: publicStorage});
+
+app.use('/public', express.static('public'));
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 app.use(session({
@@ -117,13 +131,13 @@ app.post('/updatePassword', upload.array(), function (req, res) {
   User.updatePassword(req, res);
 })
 
-app.post('/updateAvatar', upload.single('avatar'), function (req, res, next) {
+app.post('/updateAvatar', publicUpload.single('avatar'), function (req, res, next) {
   User.updateAvatar(req, res);
 })
 
 // Todo download a list of files
-app.post('/download', upload.array(), function (req, res) {
-  File.download(req, res);
+app.post('/downloadList', upload.array(), function (req, res) {
+  File.downloadList(req, res);
 })
 
 // single file download.

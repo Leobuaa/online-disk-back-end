@@ -780,12 +780,8 @@ var updateAvatar = (db, req, res) => {
 }
 
 var download = (db, req, res) => {
-  // var fileItems = db.collection('fileItems');
-  let params = req.params;
-  if (params === null || Object.getOwnPropertyNames(params).length === 0) {
-    params = req.body;
-  }
-
+  const params = req.params;
+  var downloadTasks = db.collection('downloadTasks');
   console.log(req);
 
   const response = {
@@ -805,6 +801,55 @@ var download = (db, req, res) => {
   }
 
   res.download('uploads/' + params.filePath);
+}
+
+var downloadList = (db, req, res) => {
+  var downloadTasks = db.collection('downloadTasks');
+  const params = req.body;
+
+  const response = {
+    success: '1',
+    message: '',
+    code: '0',
+    data: null,
+  };
+
+  if (!auth(req)) {
+    response.success = '0';
+    response.message = 'User is not authenticated.';
+    response.code = '110';
+    console.log(response);
+    res.json(response);
+    return;
+  }
+
+  const downloadTask = {
+    username: req.session.username,
+    updatedAt: helper.dateFormat(),
+    isFinished: false,
+    tasksIdList: params.tasksIdList,
+  };
+
+  console.log('downloadTask: ', downloadTask);
+
+  downloadTask.insertOne(downloadTask, (err, result) => {
+    if (err === null) {
+      console.log("Insert one downloadTask succeed.");
+      if (result.result.ok === 1 && result.result.n === 1) {
+        console.log(result.ops);
+        response.data = result.ops[0];
+        response.message = 'Insert one downloadTask succeed.';
+      }
+    } else {
+      console.log("Insert error occured.");
+      console.log(err);
+      response.success = '0';
+      response.code = err.code.toString();
+      response.message = err.message;
+    }
+
+    res.json(response);
+  })
 }
 
 var completeDelete = (db, req, res) => {
@@ -910,5 +955,6 @@ exports.updateUserInfo = updateUserInfo
 exports.updatePassword = updatePassword
 exports.updateAvatar = updateAvatar
 exports.download = download
+exports.downloadList = downloadList
 exports.completeDelete = completeDelete
 exports.showFile = showFile
