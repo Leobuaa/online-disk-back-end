@@ -852,9 +852,14 @@ var downloadList = (db, req, res) => {
   })
 }
 
+var callbackCount = 0;
+var currentTaskId = 0;
+var totalTaskCount = 0;
+
 var downloadByTaskId = (db, req, res) => {
   const params = req.params;
   var downloadTasks = db.collection('downloadTasks');
+  var fileItems = db.collection('fileItems');
   console.log(req);
 
   const response = {
@@ -863,6 +868,9 @@ var downloadByTaskId = (db, req, res) => {
     code: '0',
     data: null,
   };
+
+  callbackCount = 0;
+  currentTaskId = 0;
 
   if (!auth(req)) {
     response.success = '0';
@@ -883,29 +891,36 @@ var downloadByTaskId = (db, req, res) => {
         response.message = 'The download task do not exist.';
         res.json(response);
       } else {
-        console.log(result);
+        console.log('downloadTaskResult', result);
         let zipArray = [];
         if (result.tasksIdList instanceof Array) {
           const tasksIdList = result.tasksIdList;
+          totalTaskCount = tasksIdList.length;
+
+          console.log('callbackCount: ', callbackCount);
+          console.log('currentTaskId: ', currentTaskId);
+          console.log('totalTaskCount: ', totalTaskCount);
+
+          let isThereAnyDirectory = false;
           tasksIdList.forEach((obj) => {
+            currentTaskId++;
             const filePath = obj.filePath;
+
+            // 如果filePath有值，表明不是目录。
             if (filePath != null && filePath != '') {
               zipArray.push({
                 path: filePath,
                 name: filePath.substr(filePath.lastIndexOf('/') + 1),
               });
+            } else if (obj.hasOwnProperty('_id')) {
+              isThereAnyDirectory = true;
+              searchDirectory(obj._id, fileItems, zipArray, req, res);
             }
           })
-        }
 
-        if (zipArray.length === 0) {
-          response.success = '0';
-          response.message = 'No File to download.';
-          res.json(response);
-        } else if (zipArray.length === 1) {
-          res.download(zipArray[0].path);
-        } else if (zipArray.length > 1) {
-          res.zip(zipArray);
+          if (!isThereAnyDirectory) {
+            downloadZipArray(zipArray, res);
+          }
         }
       }
 
@@ -914,6 +929,75 @@ var downloadByTaskId = (db, req, res) => {
       response.message = err.message;
       response.code = err.code.toString();
       res.json(response);
+    }
+  })
+}
+
+var downloadZipArray = (zipArray, res) => {
+  console.log('zipArray', zipArray);
+
+  if (zipArray.length === 0) {
+    const response = {
+      success: '0',
+      message: 'No File to download.'
+    }
+    res.json(response);
+  } else if (zipArray.length === 1) {
+    res.download(zipArray[0].path);
+  } else if (zipArray.length > 1) {
+    res.zip(zipArray);
+  }
+}
+
+var searchDirectory = (_id, fileItems, zipArray, req, res) => {
+  fileItems.findOne({
+    _id: new ObjectID(_id)
+  }, (err, result) => {
+    if (err === null) {
+      if (result != null) {
+        if (result.hasOwnProperty('type') && result.type === 'directory') {
+          console.log('isDirectory', result);
+          getFileItemsOfDirectory(result, fileItems, zipArray, req, res);
+        }
+      }
+    }
+  })
+}
+
+var getFileItemsOfDirectory = (directory, fileItems, zipArray, req, res) => {
+  callbackCount++;
+  fileItems.find({
+    $and: [
+      {username: req.session.username},
+      {parentId: directory.id},
+    ]
+  }).toArray((err, items) => {
+    if (err === null) {
+      console.log('getFileItemsOfDirectory items', items);
+      if (items != null && items instanceof Array) {
+        items.forEach((obj) => {
+          if (obj.hasOwnProperty('type')) {
+            if (obj.type === 'directory') {
+              getFileItemsOfDirectory(obj, fileItems, zipArray, req, res);
+            } else {
+              if (obj.hasOwnProperty('filePath') && obj.filePath != null && obj.filePath != '') {
+                console.log('add one to zipArray');
+                console.log(obj.title);
+                zipArray.push({
+                  path: obj.filePath,
+                  name: obj.title,
+                });
+              }
+            }
+          }
+        })
+      }
+    } else {
+      console.log('getFileItemsOfDirectory Error', err);
+    }
+    callbackCount--;
+    if (callbackCount === 0 && currentTaskId === totalTaskCount) {
+      downloadZipArray(zipArray, res);
     }
   })
 }
