@@ -40,6 +40,10 @@ exports.downloadList = (req, res) => {
   Mongodb.connect(Mongodb.downloadList, req, res);
 }
 
+exports.downloadByTaskId = (req, res) => {
+  Mongodb.connect(Mongodb.downloadByTaskId, req, res);
+}
+
 exports.completeDelete = (req, res) => {
   Mongodb.connect(Mongodb.completeDelete, req, res);
 }

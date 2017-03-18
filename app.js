@@ -145,6 +145,11 @@ app.get('/download/uploads/:filePath', function (req, res) {
   File.download(req, res);
 })
 
+// download File by Task Id.
+app.get('/downloadByTaskId/:downloadTaskId', function (req, res) {
+  File.downloadByTaskId(req, res);
+})
+
 app.post('/completeDelete', upload.array(), function (req, res) {
   File.completeDelete(req, res);
 })

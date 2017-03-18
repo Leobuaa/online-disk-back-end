@@ -832,7 +832,7 @@ var downloadList = (db, req, res) => {
 
   console.log('downloadTask: ', downloadTask);
 
-  downloadTask.insertOne(downloadTask, (err, result) => {
+  downloadTasks.insertOne(downloadTask, (err, result) => {
     if (err === null) {
       console.log("Insert one downloadTask succeed.");
       if (result.result.ok === 1 && result.result.n === 1) {
@@ -849,6 +849,72 @@ var downloadList = (db, req, res) => {
     }
 
     res.json(response);
+  })
+}
+
+var downloadByTaskId = (db, req, res) => {
+  const params = req.params;
+  var downloadTasks = db.collection('downloadTasks');
+  console.log(req);
+
+  const response = {
+    success: '1',
+    message: '',
+    code: '0',
+    data: null,
+  };
+
+  if (!auth(req)) {
+    response.success = '0';
+    response.message = 'User is not authenticated.';
+    response.code = '110';
+    res.json(response);
+    console.log(response);
+    return;
+  }
+
+  downloadTasks.findOne({
+    _id: new ObjectID(params.downloadTaskId),
+    username: req.session.username,
+  }, (err, result) => {
+    if (err === null) {
+      if (result === null) {
+        response.success = '0';
+        response.message = 'The download task do not exist.';
+        res.json(response);
+      } else {
+        console.log(result);
+        let zipArray = [];
+        if (result.tasksIdList instanceof Array) {
+          const tasksIdList = result.tasksIdList;
+          tasksIdList.forEach((obj) => {
+            const filePath = obj.filePath;
+            if (filePath != null && filePath != '') {
+              zipArray.push({
+                path: filePath,
+                name: filePath.substr(filePath.lastIndexOf('/') + 1),
+              });
+            }
+          })
+        }
+
+        if (zipArray.length === 0) {
+          response.success = '0';
+          response.message = 'No File to download.';
+          res.json(response);
+        } else if (zipArray.length === 1) {
+          res.download(zipArray[0].path);
+        } else if (zipArray.length > 1) {
+          res.zip(zipArray);
+        }
+      }
+
+    } else {
+      response.success = '0';
+      response.message = err.message;
+      response.code = err.code.toString();
+      res.json(response);
+    }
   })
 }
 
@@ -956,5 +1022,6 @@ exports.updatePassword = updatePassword
 exports.updateAvatar = updateAvatar
 exports.download = download
 exports.downloadList = downloadList
+exports.downloadByTaskId = downloadByTaskId
 exports.completeDelete = completeDelete
 exports.showFile = showFile
